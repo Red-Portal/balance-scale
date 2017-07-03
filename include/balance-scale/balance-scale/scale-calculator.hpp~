@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "measurer.hpp"
+#include "complexity_functions.hpp"
 
 namespace balance
 {
@@ -16,8 +17,6 @@ namespace balance
     using time_point = std::chrono::time_point< clock,
                                                 std::nano >;
     using data_set = std::pair<int, time_point>;
-
-    enum class complexity{constant, linear};
 
     class scale_calculator
     {
@@ -38,7 +37,7 @@ namespace balance
     // implementation
 
     scale_calculator::
-    scale_calculator
+    scale_calculator()
     {
         compl_funcs_init(); 
     }
@@ -53,16 +52,16 @@ namespace balance
 
     complexity
     scale_calculator::
-    compute_compexity()
+    compute_complexity()
     {
-        auto results = vector<complexity>();
+        auto results = std::vector<complexity>();
 
-        for(auto i = 0; i < _datas; ++i)
+        for(size_t i = 0; i < _datas.size(); ++i)
         {
-            for(auto j = i; j < _datas; ++j)
+            for(auto j = i; j < _datas.size(); ++j)
             {
-                auto result = compute_compl_impl(_datas[i],
-                                                 _datas[j]);
+                auto result = compute_compl_impl(_datas[i].value(),
+                                                 _datas[j].value());
                 results.push_back(result);
             }
         }
@@ -73,7 +72,10 @@ namespace balance
     compute_compl_impl(data_set const& first,
                        data_set const& second)
     {
-        
+        for()
+        {
+            firs 
+                }
     }
 }
 

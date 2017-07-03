@@ -1,4 +1,4 @@
-#include "../include/balance-scale.hpp"
+#include <balance-scale/balance-scale.hpp>
 
 int main()
 {
