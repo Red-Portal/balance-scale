@@ -17,5 +17,5 @@ set(SOURCE_PATH ${PROJECT_SOURCE_DIR}/example)
 set(SOURCE_FILES
     ${SOURCE_PATH}/main.cpp) 
 
-add_executable(BalanceScaleExample ${SOURCE_FILES})
+add_executable(balance_scale_example ${SOURCE_FILES})
 
