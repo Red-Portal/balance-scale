@@ -1,13 +1,15 @@
 #ifndef _MEASURER_HPP_
 #define _MEASURER_HPP_
 
+#include <chrono>
 
 namespace balance
 {
     using clock = std::chrono::high_resolution_clock;
-    using time_point = std::chrono::time_point< clock,
-					        std::nano >;
-    using data_set = std::pair<int, time_point>;
+    using time_point = std::chrono::time_point<clock>;
+    using time_duration = std::chrono::duration< long,
+                                                 std::nano >;
+    using data_set = std::pair<int, time_duration>;
 
 
     class measurer
@@ -17,8 +19,10 @@ namespace balance
         std::optional<data_set>& _data;
         std::optional<time_point> _start;
 
+        inline void set_data(time_point end);
+
     public:
-        inline measurer(std::optional<data_set>&);
+        inline measurer(std::optional<data_set>& data);
         inline ~measurer();
 
         inline void start(int N);
@@ -36,7 +40,7 @@ namespace balance
     ~measurer()
     {
         if(!_data)
-            _data.emplace(clock::now - _start);
+            set_data(clock::now());
     }
 
     void
@@ -51,12 +55,19 @@ namespace balance
     measurer::
     end()
     {
-        auto duration = clock::now - _start;
+        set_data(clock::now());
+    }
+
+    void
+    measurer::
+    set_data(time_point end)
+    {
+        auto duration = end - _start.value();
 
         _data.emplace(
             std::make_pair(
                 _N,
-                std::chrono::duration<std::nano>(duration)));
+                std::chrono::duration<long, std::nano>(duration)));
     }
 }
 
