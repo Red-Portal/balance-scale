@@ -2,6 +2,9 @@
 #define _MEASURER_HPP_
 
 #include <chrono>
+#include <memory>
+
+#include <iostream>
 
 namespace balance
 {
@@ -11,18 +14,17 @@ namespace balance
                                                  std::nano >;
     using data_set = std::pair<int, time_duration>;
 
-
     class measurer
     {
     private:
         int _N;
-        std::optional<data_set>& _data;
+        std::shared_ptr<std::optional<data_set>> _data;
         std::optional<time_point> _start;
 
         inline void set_data(time_point end);
 
     public:
-        inline measurer(std::optional<data_set>& data);
+        inline explicit measurer(std::shared_ptr<std::optional<data_set>> data);
         inline ~measurer();
 
         inline void start(int N);
@@ -30,9 +32,9 @@ namespace balance
     };
 
     measurer::
-    measurer(std::optional<data_set>& data)
+    measurer(std::shared_ptr<std::optional<data_set>> data)
         : _N(0),
-          _data(data),
+          _data(std::move(data)),
           _start({})
     {}
 
@@ -49,7 +51,7 @@ namespace balance
     {
         _start.emplace(clock::now());
         _N = N;
-    } 
+    }
 
     void
     measurer::
@@ -63,12 +65,7 @@ namespace balance
     set_data(time_point end)
     {
         auto duration = end - _start.value();
-
-        _data.emplace(
-            std::make_pair(
-                _N,
-                std::chrono::duration<long, std::nano>(duration)));
+        _data->emplace(_N, std::chrono::duration<long, std::nano>(duration));
     }
 }
-
 #endif

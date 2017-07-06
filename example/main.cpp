@@ -28,12 +28,12 @@ int main()
     }
 
     {
-        measur1.start(100000);
+        measur2.start(100000);
 
         std::cout << "multiplying 1000 by 100000: " 
                   << mult(100000, 1000) << std::endl;
 
-        measur1.end();
+        measur2.end();
     }
 
     auto result = calc.compute_complexity();

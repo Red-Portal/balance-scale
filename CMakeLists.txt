@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 if(MSVC)
     set(CMAKE_CXX_FLAGS "/WX- /Wall /O2 /Ob2")
 else()
-    set(CMAKE_CXX_FLAGS "-pthread -Wall -Wextra -O3")
+    set(CMAKE_CXX_FLAGS "-g -pthread -Wall -Wextra -O3")
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
