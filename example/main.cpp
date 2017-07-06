@@ -2,12 +2,12 @@
 #include <time.h>
 #include <iostream>
 
-int mult(int x, int y)
+int64_t fib(int64_t num)
 {
-    int result = 0;
-    for(int i = 0; i < x; ++i)
-        result += y;
-    return result;
+    if(num == 0 || num == 1)
+        return 1;
+    else
+        return fib(num - 1) + fib(num - 2);
 }
 
 int main()
@@ -16,29 +16,42 @@ int main()
 
     auto measur1 = calc.make_measurer();
     auto measur2 = calc.make_measurer();
+    auto measur3 = calc.make_measurer();
+
 
     {
-        measur1.start(1000);
+        int const num = 13;
+        measur3.start(num);
 
+        std::cout << num << "th fibonacci number is " 
+                  << fib(num) << std::endl;
 
-        std::cout << "multiplying 1000 by 1000: " 
-                  << mult(1000, 1000) << std::endl;
+        measur3.end();
+    } 
+
+    {
+        int const num = 10;
+        measur2.start(num);
+
+        std::cout << num << "th fibonacci number is " 
+                  << fib(num) << std::endl;
+
+        measur2.end();
+    } 
+
+    {
+        int const num = 1;
+        measur1.start(num);
+
+        std::cout << num << "th fibonacci number is "
+                  << fib(num) << std::endl;
 
         measur1.end();
     }
 
-    {
-        measur2.start(100000);
-
-        std::cout << "multiplying 1000 by 100000: " 
-                  << mult(100000, 1000) << std::endl;
-
-        measur2.end();
-    }
-
     auto result = calc.compute_complexity();
 
-    std::cout << "result: " << result << std::endl;
+    std::cout << "approximate complexity: " << result << std::endl;
 
     return 0;
 }

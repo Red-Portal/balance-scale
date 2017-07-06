@@ -82,7 +82,7 @@ namespace balance
 
         for(size_t i = 0; i < _datas.size(); ++i)
         {
-            for(auto j = i; j < _datas.size(); ++j)
+            for(auto j = i + 1; j < _datas.size(); ++j)
             {
                 auto result = compute_compl_impl(_datas[i]->value(),
                                                  _datas[j]->value());
@@ -104,8 +104,8 @@ namespace balance
 
         if(first.first > second.first)
         {
-            N1 = &second;
             N2 = &first;
+            N1 = &second;
         }
         else
         {
@@ -113,10 +113,11 @@ namespace balance
             N2 = &second;
         }
     
-        double k = N2->first / N1->first;
+        double k = static_cast<double>(N2->first) / N1->first;
         int N = N1->first;
 
-        double T = N2->second.count() / N1->second.count();
+        double T = static_cast<double>(N2->second.count())
+            / N1->second.count();
 
         std::vector<std::pair<double, std::string>> compared_result;
 
@@ -124,6 +125,7 @@ namespace balance
         {
             auto& f = complexity_functions[i].first;
             auto& str = complexity_functions[i].second;
+
             auto result = std::abs(T - f(k, N)); 
 
             compared_result.emplace_back(result, str);

@@ -65,7 +65,9 @@ namespace balance
     set_data(time_point end)
     {
         auto duration = end - _start.value();
-        _data->emplace(_N, std::chrono::duration<long, std::nano>(duration));
+        _data->emplace(_N,
+                       std::chrono::duration<long,
+                       std::nano>(duration));
     }
 }
 #endif
