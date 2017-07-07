@@ -19,3 +19,8 @@ set(FIB_SOURCE_FILES
 
 add_executable(example-fibonacci ${FIB_SOURCE_FILES})
 
+set(MULT_SOURCE_FILES
+    ${SOURCE_PATH}/multiplication.cpp) 
+
+add_executable(example-multiplication ${MULT_SOURCE_FILES})
+
