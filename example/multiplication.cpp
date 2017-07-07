@@ -17,27 +17,46 @@ int main()
 {
     auto  calculator = balance::scale_calculator();
 
-    auto measurer1 = calculator.make_measurer();
-    auto measurer2 = calculator.make_measurer();
-
     const int Y = 1000;
 
     {
         int X = 100;
-        measurer1.start(X); 
+
+        auto measurer = calculator.make_measurer();
+        measurer.start(X); 
 
         std::cout << "multiplying " << X << " with " << Y << " is "
                   << multiplication(X, Y) << std::endl;
-        measurer1.end();
     }
 
     {
         int X = 100000;
-        measurer2.start(X); 
+
+        auto measurer = calculator.make_measurer();
+        measurer.start(X); 
 
         std::cout << "multiplying " << X << " with " << Y << " is "
                   << multiplication(X, Y) << std::endl;
-        measurer2.end();
+    }
+
+    {
+        int X = 10;
+
+        auto measurer = calculator.make_measurer();
+        measurer.start(X); 
+
+        std::cout << "multiplying " << X << " with " << Y << " is "
+                  << multiplication(X, Y) << std::endl;
+    }
+
+    {
+        int X = 500;
+
+        auto measurer = calculator.make_measurer();
+        measurer.start(X); 
+
+        std::cout << "multiplying " << X << " with " << Y << " is "
+                  << multiplication(X, Y) << std::endl;
     }
 
     auto complexity = calculator.compute_complexity();

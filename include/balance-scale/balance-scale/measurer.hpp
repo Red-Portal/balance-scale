@@ -41,8 +41,8 @@ namespace balance
     measurer::
     ~measurer()
     {
-        if(!_data)
-            set_data(clock::now());
+        if(!(*_data))
+	    set_data(clock::now());
     }
 
     void
