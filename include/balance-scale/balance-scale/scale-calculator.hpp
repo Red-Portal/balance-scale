@@ -18,7 +18,7 @@
 
 namespace balance
 {
-    using clock = std::chrono::high_resolution_clock;
+    using clock = std::chrono::steady_clock;
     using time_duration = std::chrono::duration< long,
                                                  std::nano >;
 

@@ -9,54 +9,54 @@
 namespace balance
 {
     enum class complexity{constant = 0,
-			  linear = 1,
-			  square = 2,
-			  logn = 3,
-			  nlogn = 4};
+                          linear = 1,
+                          square = 2,
+                          logn = 3,
+                          nlogn = 4};
 
     std::vector<std::pair
-		<std::function<double(double, int)>,
-		 std::string>>  complexity_functions = { 
-	{
-	    [](double k, int N) -> double
-	    {
-		(void)N;
-		(void)k;
-		return 1; 
-	    }, "constant"
-	},
+                <std::function<double(double, int)>,
+                 std::string>>  complexity_functions = { 
+        {
+            [](double k, int N) -> double
+            {
+                (void)N;
+                (void)k;
+                return 1; 
+            }, "constant"
+        },
 
-	{
-	    [](double k, int N) -> double
-	    {
-		(void)N;
-		return k; 
-	    }, "linear"
-	},
+        {
+            [](double k, int N) -> double
+            {
+                (void)N;
+                return k; 
+            }, "linear"
+        },
 
-	{
-	    [](double k, int N) -> double
-	    {
-		(void)N;
-		return k * k; 
-	    }, "square"
-	},
+        {
+            [](double k, int N) -> double
+            {
+                (void)N;
+                return k * k; 
+            }, "square"
+        },
 
-	{
-	    [](double k, int N) -> double
-	    {
-		double N_f = static_cast<double>(N);
-		return 1 + std::log10(k) / std::log10(N_f); 
-	    }, "logn"
-	},
+        {
+            [](double k, int N) -> double
+            {
+                double N_f = static_cast<double>(N);
+                return 1 + std::log10(k) / std::log10(N_f); 
+            }, "logn"
+        },
 
-	{
-	    [](double k, int N) -> double
-	    {
-		double N_f = static_cast<double>(N);
-		return k * (1 + std::log10(k) / std::log10(N_f)); 
-	    }, "nlogn"
-	}
+        {
+            [](double k, int N) -> double
+            {
+                double N_f = static_cast<double>(N);
+                return k * (1 + std::log10(k) / std::log10(N_f)); 
+            }, "nlogn"
+        }
     };
 }
 
