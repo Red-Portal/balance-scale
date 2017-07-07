@@ -11,7 +11,7 @@ cmake_install.cmake
 Makefile
 
 # executables
-balance_scale_example
+example_*
 
 # gcc temporary files
 *.gch
