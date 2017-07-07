@@ -14,8 +14,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 set(SOURCE_PATH ${PROJECT_SOURCE_DIR}/example)
 
-set(SOURCE_FILES
-    ${SOURCE_PATH}/main.cpp) 
+set(FIB_SOURCE_FILES
+    ${SOURCE_PATH}/fibonacci.cpp) 
 
-add_executable(balance_scale_example ${SOURCE_FILES})
+add_executable(example-fibonacci ${FIB_SOURCE_FILES})
 
