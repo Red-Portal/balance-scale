@@ -13,10 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _BALANCE_SCALE_HPP_
-#define _BALANCE_SCALE_HPP_
+#ifndef _SCALE_SIMULATOR_HPP_
+#define _SCALE_SIMULATOR_HPP_
 
-#include "balance-scale/scale_approximator.hpp"
-#include "balance-scale/scale_simulator.hpp"
+namespace balance
+{
+    class scale-simulator;
+}
 
 #endif
