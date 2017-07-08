@@ -29,16 +29,25 @@ namespace balance
                           logn = 3,
                           nlogn = 4};
 
+    std::vector<std::string> complexity_str = {
+	"constant",
+	"linear",
+	"square",
+	"logn",
+	"nlogn"
+    };
+
+
     std::vector<std::pair
                 <std::function<double(double, int)>,
-                 std::string>>  complexity_functions = { 
+		 complexity>>  complexity_functions = { 
         {
             [](double k, int N) -> double
             {
                 (void)N;
                 (void)k;
                 return 1; 
-            }, "constant"
+            }, complexity::constant
         },
 
         {
@@ -46,7 +55,7 @@ namespace balance
             {
                 (void)N;
                 return k; 
-            }, "linear"
+            }, complexity::linear
         },
 
         {
@@ -54,7 +63,7 @@ namespace balance
             {
                 (void)N;
                 return k * k; 
-            }, "square"
+            }, complexity::square
         },
 
         {
@@ -62,7 +71,7 @@ namespace balance
             {
                 double N_f = static_cast<double>(N);
                 return 1 + std::log10(k) / std::log10(N_f); 
-            }, "logn"
+            }, complexity::logn
         },
 
         {
@@ -70,7 +79,7 @@ namespace balance
             {
                 double N_f = static_cast<double>(N);
                 return k * (1 + std::log10(k) / std::log10(N_f)); 
-            }, "nlogn"
+            }, complexity::nlogn
         }
     };
 }

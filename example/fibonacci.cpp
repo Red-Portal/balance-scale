@@ -14,8 +14,8 @@
 // limitations under the License.
 
 #include <balance-scale/balance-scale.hpp>
-#include <time.h>
 #include <iostream>
+#include <chrono>
 
 int64_t fib(int64_t num)
 {
@@ -64,9 +64,17 @@ int main()
         measur1.end();
     }
 
+    
+    auto start = std::chrono::steady_clock::now();
     auto result = calc.compute_complexity();
+    auto end = std::chrono::steady_clock::now();
+
+    auto duration = end - start;
 
     std::cout << "approximate complexity: " << result << std::endl;
+    std::cout << "benchmark: "
+              << std::chrono::duration_cast<std::chrono::microseconds>(duration).count()
+              << std::endl;
 
     return 0;
 }

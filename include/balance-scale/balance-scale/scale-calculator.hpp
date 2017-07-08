@@ -40,10 +40,11 @@ namespace balance
     private:
         std::vector<std::shared_ptr<std::optional<data_set>>> _datas;
 
-        inline std::string compute_compl_impl(data_set const& first,
-                                              data_set const& second) const;
-        inline std::string find_best_fit(
-            std::vector<std::string> const& candidates) const;
+        inline complexity compute_compl_impl(data_set const& first,
+                                             data_set const& second) const;
+        inline complexity
+        find_best_fit(std::vector<complexity> const& candidates) const;
+
     public:
         inline scale_calculator(); 
 	inline ~scale_calculator() =  default;
@@ -69,11 +70,11 @@ namespace balance
     }
     
 
-    std::string
+    complexity
     scale_calculator::
-    find_best_fit(std::vector<std::string> const& candidates) const
+    find_best_fit(std::vector<complexity> const& candidates) const
     {
-        std::unordered_map<std::string, int> table;
+        std::unordered_map<complexity, int> table;
 
         for(auto i : candidates) 
             ++table[i];
@@ -91,7 +92,7 @@ namespace balance
     compute_complexity() 
     {
 
-        auto results = std::vector<std::string>();
+        auto results = std::vector<complexity>();
 
         for(size_t i = 0; i < _datas.size(); ++i)
         {
@@ -104,10 +105,10 @@ namespace balance
         }
     
         auto best = find_best_fit(results);
-        return best;
+        return complexity_str[static_cast<int>(best)];
     }
 
-    std::string
+    complexity
     scale_calculator::
     compute_compl_impl(data_set const& first,
                        data_set const& second) const
@@ -132,16 +133,16 @@ namespace balance
         double T = static_cast<double>(N2->second.count())
             / N1->second.count();
 
-        std::vector<std::pair<double, std::string>> compared_result;
+        std::vector<std::pair<double, complexity>> compared_result;
 
         for(auto i = 0u; i < complexity_functions.size(); ++i)
         {
             auto& f = complexity_functions[i].first;
-            auto& str = complexity_functions[i].second;
+            auto& comp = complexity_functions[i].second;
 
             auto result = std::abs(T - f(k, N)); 
 
-            compared_result.emplace_back(result, str);
+            compared_result.emplace_back(result, comp);
         }
     
         auto it = std::min_element(compared_result.begin(),
