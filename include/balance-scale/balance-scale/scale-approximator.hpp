@@ -56,7 +56,7 @@ namespace balance
     };
 
 
-// implementation
+    // implementation
     scale_approximator::
     scale_approximator()
     {
