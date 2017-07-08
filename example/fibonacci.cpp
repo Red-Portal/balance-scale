@@ -27,7 +27,7 @@ int64_t fib(int64_t num)
 
 int main()
 {
-    auto calc = balance::scale_calculator();
+    auto calc = balance::scale_approximator();
 
     auto measur1 = calc.make_measurer();
     auto measur2 = calc.make_measurer();

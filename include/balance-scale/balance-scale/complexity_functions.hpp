@@ -21,7 +21,7 @@
 #include <string>
 #include <cmath>
 
-namespace balance
+namespace balance::approx
 {
     enum class complexity{constant = 0,
                           linear = 1,
@@ -29,7 +29,7 @@ namespace balance
                           logn = 3,
                           nlogn = 4};
 
-    std::vector<std::string> complexity_str = {
+    std::vector<std::string> compl_strings = {
 	"constant",
 	"linear",
 	"square",
@@ -40,7 +40,7 @@ namespace balance
 
     std::vector<std::pair
                 <std::function<double(double, int)>,
-		 complexity>>  complexity_functions = { 
+		 complexity>>  compl_functions = { 
         {
             [](double k, int N) -> double
             {

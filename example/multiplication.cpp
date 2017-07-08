@@ -30,7 +30,7 @@ int64_t multiplication(int64_t X, int64_t Y)
 
 int main()
 {
-    auto  calculator = balance::scale_calculator();
+    auto  calculator = balance::scale_approximator();
 
     const int Y = 1000;
 

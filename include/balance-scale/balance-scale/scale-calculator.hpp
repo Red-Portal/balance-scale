@@ -35,19 +35,21 @@ namespace balance
     using time_duration = std::chrono::duration< long,
                                                  std::nano >;
 
-    class scale_calculator
+    class scale_approximator
     {
     private:
-        std::vector<std::shared_ptr<std::optional<data_set>>> _datas;
+        std::vector<std::shared_ptr<std::optional<data_set>>> _data;
 
-        inline complexity compute_compl_impl(data_set const& first,
-                                             data_set const& second) const;
-        inline complexity
-        find_best_fit(std::vector<complexity> const& candidates) const;
+        inline approx::complexity
+        compute_compl_impl(data_set const& first,
+                           data_set const& second) const;
+
+        inline approx::complexity
+        find_best_fit(std::vector<approx::complexity> const& candidates) const;
 
     public:
-        inline scale_calculator(); 
-	inline ~scale_calculator() =  default;
+        inline scale_approximator(); 
+        inline ~scale_approximator() =  default;
 
         inline measurer make_measurer();
         inline std::string compute_complexity();
@@ -55,26 +57,26 @@ namespace balance
 
 
 // implementation
-    scale_calculator::
-    scale_calculator()
+    scale_approximator::
+    scale_approximator()
     {
-        _datas.reserve(5);
+        _data.reserve(5);
     }
 
     measurer
-    scale_calculator::
+    scale_approximator::
     make_measurer()
     { 
-        _datas.push_back(std::make_shared<std::optional<data_set>>());
-        return measurer(_datas.back());
+        _data.push_back(std::make_shared<std::optional<data_set>>());
+        return measurer(_data.back());
     }
     
 
-    complexity
-    scale_calculator::
-    find_best_fit(std::vector<complexity> const& candidates) const
+    approx::complexity
+    scale_approximator::
+    find_best_fit(std::vector<approx::complexity> const& candidates) const
     {
-        std::unordered_map<complexity, int> table;
+        std::unordered_map<approx::complexity, int> table;
 
         for(auto i : candidates) 
             ++table[i];
@@ -88,28 +90,27 @@ namespace balance
     }
  
     std::string 
-    scale_calculator::
+    scale_approximator::
     compute_complexity() 
     {
+        auto results = std::vector<approx::complexity>();
 
-        auto results = std::vector<complexity>();
-
-        for(size_t i = 0; i < _datas.size(); ++i)
+        for(size_t i = 0; i < _data.size(); ++i)
         {
-            for(auto j = i + 1; j < _datas.size(); ++j)
+            for(auto j = i + 1; j < _data.size(); ++j)
             {
-                auto result = compute_compl_impl(_datas[i]->value(),
-                                                 _datas[j]->value());
+                auto result = compute_compl_impl(_data[i]->value(),
+                                                 _data[j]->value());
                 results.push_back(result);
             }
         }
     
         auto best = find_best_fit(results);
-        return complexity_str[static_cast<int>(best)];
+        return approx::compl_strings[static_cast<int>(best)];
     }
 
-    complexity
-    scale_calculator::
+    approx::complexity
+    scale_approximator::
     compute_compl_impl(data_set const& first,
                        data_set const& second) const
     {
@@ -133,12 +134,12 @@ namespace balance
         double T = static_cast<double>(N2->second.count())
             / N1->second.count();
 
-        std::vector<std::pair<double, complexity>> compared_result;
+        std::vector<std::pair<double, approx::complexity>> compared_result;
 
-        for(auto i = 0u; i < complexity_functions.size(); ++i)
+        for(auto i = 0u; i < approx::compl_functions.size(); ++i)
         {
-            auto& f = complexity_functions[i].first;
-            auto& comp = complexity_functions[i].second;
+            auto& f = approx::compl_functions[i].first;
+            auto& comp = approx::compl_functions[i].second;
 
             auto result = std::abs(T - f(k, N)); 
 
