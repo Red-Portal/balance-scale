@@ -31,10 +31,6 @@
 
 namespace balance
 {
-    using clock = std::chrono::steady_clock;
-    using time_duration = std::chrono::duration< long,
-                                                 std::nano >;
-
     class scale_approximator
     {
     private:

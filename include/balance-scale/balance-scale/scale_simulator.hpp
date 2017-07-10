@@ -16,9 +16,39 @@
 #ifndef _SCALE_SIMULATOR_HPP_
 #define _SCALE_SIMULATOR_HPP_
 
+#include <vector>
+#include <utility>
+#include <optional>
+#include <memory>
+
+#include "measurer.hpp"
+
 namespace balance
 {
-    class scale-simulator;
+    class scale_simulator
+    {
+    private:
+	std::vector<std::shared_ptr<std::optional<data_set>>> _data;
+
+    public:
+	scale_simulator();
+	measurer make_measurer();
+    };
+
+    scale_simulator::
+    scale_simulator()
+    {
+	// preventing std::vector from reallocating
+	_data.reserve(5);
+    }
+
+    measurer
+    scale_simulator::
+    make_measurer()
+    {
+	_data.push_back(std::make_shared<std::optional<data_set>>());
+	return measurer(_data.back());
+    }
 }
 
 #endif
