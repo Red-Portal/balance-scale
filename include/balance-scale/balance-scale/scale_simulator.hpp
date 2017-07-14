@@ -43,8 +43,9 @@ namespace balance
         std::vector<std::shared_ptr<std::optional<data_set>>> _data;
     
         template<typename _Policy>
-        void compute_simulated_graph(
-            std::vector<refined_data_set> const& data);
+        std::vector<double> compute_simulated_graph(
+            int begin, int end,
+            std::vector<refined_data_set> const& data) const;
 
         template<size_t N>
         std::vector<refined_data_set> compute_ratio(
@@ -78,44 +79,44 @@ namespace balance
 
 
     template<>
-    void
+    std::vector<double>
     scale_simulator::
     compute_simulated_graph<policy::average>(
-        std::vector<refined_data_set> const& data)
+        int begin, int end,
+        std::vector<refined_data_set> const& data) const
     {
-        auto size_ratio_total
-            = std::accumulate(
+        auto step_total = 
+            std::accumulate(
                 data.begin(),
                 data.end(),
-                0,
+                0.0,
                 [](refined_data_set const& first,
                    refined_data_set const& second)
                 {
-                    return first.first + second.first;
+                    auto step_first =
+                        std::get<2>(first) / std::get<1>(first); 
+                    auto step_second = 
+                        std::get<2>(second) / std::get<1>(second); 
+                    return step_first + step_second;
                 });
 
-        auto time_ratio_total
-            = std::accumulate(
-                data.begin(),
-                data.end(),
-                0,
-                [](refined_data_set const& first,
-                   refined_data_set const& second)
-                {
-                    return first.second + second.second;
-                });
+        auto averaged_step = 
+            step_total / static_cast<double>(data.size());
 
-        auto size_ratio_avg = size_ratio_total / data.size();
-        auto time_ratio_avg = time_ratio_total / data.size();
+        auto initial_value = std::get<0>(data.front());
+
+        std::vector<double> result(end - begin);
+        balance::generate_sequencing<double>(
+            result.begin(),
+            result.end(),
+            initial_value,
+            [averaged_step](auto it)
+            {
+                auto prev_it = std::prev(it);
+                return *prev_it + averaged_step;
+            });
         
-        auto step = size_ratio_avg / time_ratio_avg;
-
-        std::vector<int> generated_sequence;
-
-        generated_sequence.reserve(end - start);
-
-        for(auto i = start; i < end; ++i)
-            generated_sequence.push_back(generated_sequence[i] - step);
+        return {};
     }
 
     template<>

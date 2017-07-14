@@ -55,5 +55,20 @@ namespace balance
 
         return OBegin;
     }
+
+    template<typename _Initial, typename _Iterator,
+             typename _Generator>
+    inline constexpr void
+    generate_sequencing(_Iterator first, _Iterator last, 
+                        _Initial initial, _Generator gen)
+    {
+        *first = initial;
+        ++first;
+
+        for(; first != last; ++first)
+        {
+            *first = gen(first);
+        }
+    }
 }
 #endif
