@@ -33,7 +33,7 @@
 namespace balance
 {
     template<typename _IIter, typename _Funct>
-    constexpr void
+    inline constexpr void
     for_between(_IIter iBegin, _IIter iEnd, _Funct func)
     {
         auto end = std::prev(iEnd);
@@ -44,7 +44,7 @@ namespace balance
     }
 
     template<typename _IIter, typename _OIter, typename _BinaryOp>
-    constexpr void
+    inline constexpr void
     transform_between(_IIter iBegin, _IIter iEnd,
                       _OIter OBegin, _BinaryOp binary_op)
     {

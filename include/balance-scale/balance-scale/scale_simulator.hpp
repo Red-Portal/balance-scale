@@ -43,10 +43,8 @@ namespace balance
         std::vector<std::shared_ptr<std::optional<data_set>>> _data;
     
         template<typename _Policy>
-        void compute_simulated_graph(int start,
-                                     int end,
-                                     data_set const& initial,
-                                     std::vector<refined_data_set> const& data);
+        void compute_simulated_graph(
+            std::vector<refined_data_set> const& data);
 
         template<size_t N>
         std::vector<refined_data_set> compute_ratio(
@@ -78,32 +76,11 @@ namespace balance
         return measurer(_data.back());
     }
 
-    refined_data_set
-    scale_simulator::
-    compute_coeff(data_set& first, data_set& second)
-    {
-        data_set const* N1;
-        data_set const* N2;
 
-        if(first.first > second.first)
-        {
-            N1 = &first;
-            N2 = &second;
-        }
-        else
-        {
-            N1 = &second;
-            N2 = &first;
-        }
-
-    }
-    
     template<>
     void
     scale_simulator::
     compute_simulated_graph<policy::average>(
-        int start, int end,
-        data_set const& initial,
         std::vector<refined_data_set> const& data)
     {
         auto size_ratio_total
