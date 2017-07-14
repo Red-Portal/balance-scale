@@ -25,6 +25,7 @@
 
 #include "measurer.hpp"
 #include "policies.hpp"
+#include "utility.hpp"
 
 namespace balance
 {
@@ -32,136 +33,206 @@ namespace balance
     using size_ratio_t = double;
     using time_ratio_t = double;
 
-    using refined_data_set = std::pair<size_ratio_t,
-				       time_ratio_t>;
+    using refined_data_set = std::tuple<initial_value_t,
+                                        size_ratio_t,
+                                        time_ratio_t>;
 
     class scale_simulator
     {
     private:
-	std::vector<std::shared_ptr<std::optional<data_set>>> _data;
-	
-	refined_data_set compute_coeff(data_set& first, data_set& second);
+        std::vector<std::shared_ptr<std::optional<data_set>>> _data;
+    
+        template<typename _Policy>
+        void compute_simulated_graph(int start,
+                                     int end,
+                                     data_set const& initial,
+                                     std::vector<refined_data_set> const& data);
 
-	template<typename _Policy>
-	void compute_simulated_graph(_Policy const& policy,
-				     std::vector<refined_data_set> const& data);
-
+        template<size_t N>
+        std::vector<refined_data_set> compute_ratio(
+            std::vector<data_set> data) const;
+        
     public:
-	scale_simulator();
-	~scale_simulator() = default;
+        scale_simulator();
+        ~scale_simulator() = default;
+        
+        measurer make_measurer();
 
-	measurer make_measurer();
-
-	template<typename _Policy>
-	void graph_simulated_scale(_Policy const& policy);
+        template<typename _Policy>
+        void graph_simulated_scale(int begin, int end);
 
     };
 
     scale_simulator::
     scale_simulator()
     {
-	// preventing std::vector from reallocating
-	_data.reserve(5);
+        // preventing std::vector from reallocating
+        _data.reserve(5);
     }
 
     measurer
     scale_simulator::
     make_measurer()
     {
-	_data.push_back(std::make_shared<std::optional<data_set>>());
-	return measurer(_data.back());
+        _data.push_back(std::make_shared<std::optional<data_set>>());
+        return measurer(_data.back());
     }
 
     refined_data_set
     scale_simulator::
     compute_coeff(data_set& first, data_set& second)
     {
-	data_set const* N1;
-	data_set const* N2;
+        data_set const* N1;
+        data_set const* N2;
 
-	if(first.first > second.first)
-	{
-	    N1 = &first;
-	    N2 = &second;
-	}
-	else
-	{
-	    N1 = &second;
-	    N2 = &first;
-	}
+        if(first.first > second.first)
+        {
+            N1 = &first;
+            N2 = &second;
+        }
+        else
+        {
+            N1 = &second;
+            N2 = &first;
+        }
 
-	auto size_ratio = N2->first / N1->first;
-	auto time_ratio = N2->second.count() / N1->second.count();
-
-	return {size_ratio, time_ratio};
     }
     
     template<>
     void
     scale_simulator::
     compute_simulated_graph<policy::average>(
-	policy::average const& policy,
-	std::vector<refined_data_set> const& data)
+        int start, int end,
+        data_set const& initial,
+        std::vector<refined_data_set> const& data)
     {
-	auto size_ratio_total
-	    = std::accumulate(
-		data.begin(),
-		data.end(),
-		0,
-		[](refined_data_set const& first,
-		   refined_data_set const& second)
-		{
-		    return first.first + second.first;
-		});
+        auto size_ratio_total
+            = std::accumulate(
+                data.begin(),
+                data.end(),
+                0,
+                [](refined_data_set const& first,
+                   refined_data_set const& second)
+                {
+                    return first.first + second.first;
+                });
 
-	auto time_ratio_total
-	    = std::accumulate(
-		data.begin(),
-		data.end(),
-		0,
-		[](refined_data_set const& first,
-		   refined_data_set const& second)
-		{
-		    return first.second + second.second;
-		});
+        auto time_ratio_total
+            = std::accumulate(
+                data.begin(),
+                data.end(),
+                0,
+                [](refined_data_set const& first,
+                   refined_data_set const& second)
+                {
+                    return first.second + second.second;
+                });
 
-	auto size_ratio_avg = size_ratio_total / data.size();
-	auto time_ratio_avg = time_ratio_total / data.size();
+        auto size_ratio_avg = size_ratio_total / data.size();
+        auto time_ratio_avg = time_ratio_total / data.size();
+        
+        auto step = size_ratio_avg / time_ratio_avg;
 
+        std::vector<int> generated_sequence;
 
-	auto step = size_ratio_avg / time_ratio_avg;
+        generated_sequence.reserve(end - start);
 
-	std::vector<int> generated_sequence;
-
-	auto policy_range = policy.get_graph_range();
-	generated_sequence.reserve(
-	    policy_range.second - policy_range.first);
-
-	for(auto i = policy_range.first; i < policy_range.second; ++i)
+        for(auto i = start; i < end; ++i)
+            generated_sequence.push_back(generated_sequence[i] - step);
     }
+
+    template<>
+    std::vector<refined_data_set>
+    scale_simulator::
+    compute_ratio<2>(std::vector<data_set> data) const
+    {
+        data_set const* N2;
+        data_set const* N1;
+
+        if(data[0].first > data[1].first)
+        {
+            N2 = &data[0];
+            N1 = &data[1];
+        }
+        else
+        {
+            N2 = &data[1];
+            N1 = &data[0];
+        }
+
+        auto size_ratio = N2->first / N1->first;
+        auto time_ratio = N2->second.count() / N1->second.count();
+
+        return {{N1->first, size_ratio, time_ratio}};
+    }
+
+    template<size_t N>
+    std::vector<refined_data_set>
+    scale_simulator::
+    compute_ratio(std::vector<data_set> data) const
+    {
+        static_assert(N <= 1, "Not enough data. Make more measurers");
+
+        std::sort(data.begin(),
+                  data.end(),
+                  [](data_set const& first, data_set const& second){
+                      return first.first < second.first; 
+                  });
+
+        std::vector<refined_data_set> result;
+
+        balance::transform_between(
+            data.begin(),
+            data.end(),
+            result.begin(),
+            [](data_set const& first, data_set const& second)
+            ->std::tuple<initial_value_t, size_ratio_t, time_ratio_t>
+            {
+                auto size_ratio =
+                    second.first / first.first;
+                auto time_ratio =
+                    second.second.count() / first.second.count();
+
+                return {first.first, size_ratio, time_ratio};
+            });
+
+        return result;
+    }
+
 
     template<typename _Policy>
     void
     scale_simulator::
-    graph_simulated_scale(_Policy const& policy)
+    graph_simulated_scale(int begin, int end)
     {
-	std::vector<refined_data_set> refined_data;
+        std::vector<data_set> striped_data;
 
-	data_set* initial;
+        std::transform(_data.begin(),
+                       _data.end(),
+                       striped_data.begin(),
+                       [](auto element)
+                       {
+                           return element->value(); 
+                       });
 
-	for(auto it = _data.begin(); it != _data.end(); ++it)
-	{
-	    if(auto& candidate = (*it)->value();
-	       candidate.first < initial->first)
-		initial = &candidate;
+        std::vector<refined_data_set> processed_data;
+        processed_data.reserve(20); 
 
-	    for(auto it2 = std::next(it); it2 != _data.end(); ++it2)
-	    {
-		refined_data.push_back(compute_coeff((*it)->value(),
-						     (*it2)->value()));
-	    }
-	}
-	compute_simulated_graph(policy_parameters, *initial, refined_data);
+        int const ELSE = 3;
+
+        // optimization, assertion by size. size 1 should assert.
+        if(striped_data.size() <= 1)
+            processed_data = compute_ratio<1>(striped_data); 
+        
+        else if(striped_data.size() == 2)
+            processed_data = compute_ratio<2>(striped_data);
+
+        else
+            processed_data = compute_ratio<ELSE>(striped_data);
+
+        compute_simulated_graph<_Policy>(begin,
+                                         end,
+                                         processed_data);
     }
 }
 
