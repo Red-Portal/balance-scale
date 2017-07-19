@@ -53,7 +53,7 @@ namespace balance
         for(_IIter it = iBegin; it != end; ++it, ++OBegin) 
             *OBegin = binary_op(*it, *std::next(it));
 
-        return OBegin;
+        // return OBegin;
     }
 
     template<typename _Initial, typename _Iterator,

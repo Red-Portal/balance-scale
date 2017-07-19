@@ -30,17 +30,17 @@ namespace balance::approx
                           nlogn = 4};
 
     std::vector<std::string> compl_strings = {
-	"constant",
-	"linear",
-	"square",
-	"logn",
-	"nlogn"
+        "constant",
+        "linear",
+        "square",
+        "logn",
+        "nlogn"
     };
 
 
     std::vector<std::pair
                 <std::function<double(double, int)>,
-		 complexity>>  compl_functions = { 
+                 complexity>>  compl_functions = { 
         {
             [](double k, int N) -> double
             {

@@ -23,6 +23,10 @@
 #include <numeric>
 #include <algorithm>
 
+#include <iostream>
+
+#include "matplotlib/matplotlibcpp.h"
+
 #include "measurer.hpp"
 #include "policies.hpp"
 #include "utility.hpp"
@@ -36,6 +40,7 @@ namespace balance
     using refined_data_set = std::tuple<initial_value_t,
                                         size_ratio_t,
                                         time_ratio_t>;
+    using plot_interval_t = std::pair<int, int>;
 
     class scale_simulator
     {
@@ -43,13 +48,17 @@ namespace balance
         std::vector<std::shared_ptr<std::optional<data_set>>> _data;
     
         template<typename _Policy>
-        std::vector<double> compute_simulated_graph(
-            int begin, int end,
-            std::vector<refined_data_set> const& data) const;
+        std::pair<std::vector<int>, std::vector<double>>
+        compute_simulated_graph(plot_interval_t plot_interval,
+                                std::vector<refined_data_set>& data) const;
 
         template<size_t N>
-        std::vector<refined_data_set> compute_ratio(
-            std::vector<data_set> data) const;
+        std::vector<refined_data_set>
+        compute_ratio(std::vector<data_set>& data) const;
+
+        void
+        plot(std::pair<std::vector<int>,
+                       std::vector<double>>& plot_data) const;
         
     public:
         scale_simulator();
@@ -59,7 +68,6 @@ namespace balance
 
         template<typename _Policy>
         void graph_simulated_scale(int begin, int end);
-
     };
 
     scale_simulator::
@@ -79,50 +87,57 @@ namespace balance
 
 
     template<>
-    std::vector<double>
+    std::pair<std::vector<int>, std::vector<double>>
     scale_simulator::
     compute_simulated_graph<policy::average>(
-        int begin, int end,
-        std::vector<refined_data_set> const& data) const
+        plot_interval_t plot_interval,
+        std::vector<refined_data_set>& data) const
     {
         auto step_total = 
             std::accumulate(
                 data.begin(),
                 data.end(),
                 0.0,
-                [](refined_data_set const& first,
+                [](double first,
                    refined_data_set const& second)
                 {
-                    auto step_first =
-                        std::get<2>(first) / std::get<1>(first); 
                     auto step_second = 
-                        std::get<2>(second) / std::get<1>(second); 
-                    return step_first + step_second;
+                    std::get<2>(second) / std::get<1>(second); 
+                    return first + step_second;
                 });
-
+        
         auto averaged_step = 
             step_total / static_cast<double>(data.size());
 
         auto initial_value = std::get<0>(data.front());
 
-        std::vector<double> result(end - begin);
+        
+        std::vector<double> y(plot_interval.second -
+                              plot_interval.first);
+
         balance::generate_sequencing<double>(
-            result.begin(),
-            result.end(),
+            y.begin(),
+            y.end(),
             initial_value,
             [averaged_step](auto it)
             {
                 auto prev_it = std::prev(it);
                 return *prev_it + averaged_step;
             });
+
+
+        int gen = plot_interval.first;
+        std::vector<int> x(plot_interval.second -
+                           plot_interval.first);
+        std::generate(x.begin(), x.end(), [&gen](){ return gen++; });
         
-        return {};
+        return {x,y};
     }
 
     template<>
     std::vector<refined_data_set>
     scale_simulator::
-    compute_ratio<2>(std::vector<data_set> data) const
+    compute_ratio<2>(std::vector<data_set>& data) const
     {
         data_set const* N2;
         data_set const* N1;
@@ -147,17 +162,18 @@ namespace balance
     template<size_t N>
     std::vector<refined_data_set>
     scale_simulator::
-    compute_ratio(std::vector<data_set> data) const
+    compute_ratio(std::vector<data_set>& data) const
     {
-        static_assert(N <= 1, "Not enough data. Make more measurers");
-
         std::sort(data.begin(),
                   data.end(),
                   [](data_set const& first, data_set const& second){
                       return first.first < second.first; 
                   });
 
-        std::vector<refined_data_set> result;
+        auto refined_size = static_cast<size_t>(
+            std::ceil(static_cast<double>(data.size()) / 2));
+
+        std::vector<refined_data_set> result(refined_size);
 
         balance::transform_between(
             data.begin(),
@@ -169,12 +185,29 @@ namespace balance
                 auto size_ratio =
                     second.first / first.first;
                 auto time_ratio =
-                    second.second.count() / first.second.count();
+                    static_cast<time_ratio_t>(second.second.count())
+                    / first.second.count();
 
                 return {first.first, size_ratio, time_ratio};
             });
 
         return result;
+    }
+
+    void
+    scale_simulator::
+    plot(std::pair<std::vector<int>, std::vector<double>>& plot_data) const
+    {
+        namespace plt = matplotlibcpp;
+
+        // plt::plot(plot_data.first, plot_data.second);
+        // plt::xlim(plot_data.first.front(), plot_data.first.back());
+        // plt::show();
+
+        for(auto i : plot_data.second)
+        {
+            std::cout << i << std::endl;
+        }
     }
 
 
@@ -183,34 +216,33 @@ namespace balance
     scale_simulator::
     graph_simulated_scale(int begin, int end)
     {
-        std::vector<data_set> striped_data;
+        std::vector<data_set> striped_data(_data.size());
 
         std::transform(_data.begin(),
                        _data.end(),
                        striped_data.begin(),
-                       [](auto element)
+                       [](auto const& element)
                        {
                            return element->value(); 
                        });
 
         std::vector<refined_data_set> processed_data;
-        processed_data.reserve(20); 
 
         int const ELSE = 3;
 
         // optimization, assertion by size. size 1 should assert.
-        if(striped_data.size() <= 1)
-            processed_data = compute_ratio<1>(striped_data); 
-        
-        else if(striped_data.size() == 2)
+        if(striped_data.size() == 2)
             processed_data = compute_ratio<2>(striped_data);
-
         else
             processed_data = compute_ratio<ELSE>(striped_data);
 
-        compute_simulated_graph<_Policy>(begin,
-                                         end,
-                                         processed_data);
+        auto plot_range = std::make_pair(begin, end);
+        auto plot_data =
+            compute_simulated_graph<_Policy>(
+                plot_range,
+                processed_data);
+
+        plot(plot_data);
     }
 }
 

@@ -19,6 +19,8 @@
 #include <chrono>
 #include <memory>
 
+#include <iostream>
+
 namespace balance
 {
     using clock = std::chrono::steady_clock;
@@ -81,6 +83,8 @@ namespace balance
         _data->emplace(_N,
                        std::chrono::duration<long,
                        std::nano>(duration));
+
+        std::cout << "measurer: " << _data->value().first << " " << _data->value().second.count() << std::endl;;
     }
 }
 #endif
