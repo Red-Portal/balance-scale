@@ -17,6 +17,7 @@
 #define _SCALE_SIMULATOR_HPP_
 
 #include <vector>
+#include <chrono>
 #include <utility>
 #include <optional>
 #include <memory>
@@ -33,27 +34,30 @@
 
 namespace balance
 {
-    using initial_value_t = int;
+    using initial_value_t = data_set;
     using size_ratio_t = double;
     using time_ratio_t = double;
 
-    using refined_data_set = std::tuple<initial_value_t,
-                                        size_ratio_t,
-                                        time_ratio_t>;
+    using ratio_data_set = std::tuple<initial_value_t,
+                                      size_ratio_t,
+                                      time_ratio_t>;
+
     using plot_interval_t = std::pair<int, int>;
 
     class scale_simulator
     {
     private:
         std::vector<std::shared_ptr<std::optional<data_set>>> _data;
+        std::pair<std::vector<int>,
+                  std::vector<time_duration>> _simulated_range;
     
         template<typename _Policy>
-        std::pair<std::vector<int>, std::vector<double>>
-        compute_simulated_graph(plot_interval_t plot_interval,
-                                std::vector<refined_data_set>& data) const;
+        std::pair<std::vector<int>, std::vector<time_duration>>
+        compute_simulated_range(plot_interval_t plot_interval,
+                                std::vector<ratio_data_set>& data) const;
 
         template<size_t N>
-        std::vector<refined_data_set>
+        std::vector<ratio_data_set>
         compute_ratio(std::vector<data_set>& data) const;
 
         void
@@ -67,7 +71,9 @@ namespace balance
         measurer make_measurer();
 
         template<typename _Policy>
-        void graph_simulated_scale(int begin, int end);
+        void simulate_scale(int begin, int end);
+
+        double get_simulated_time(int input_size);
     };
 
     scale_simulator::
@@ -87,55 +93,66 @@ namespace balance
 
 
     template<>
-    std::pair<std::vector<int>, std::vector<double>>
+    std::pair<std::vector<int>, std::vector<time_duration>>
     scale_simulator::
-    compute_simulated_graph<policy::average>(
+    compute_simulated_range<policy::average>(
         plot_interval_t plot_interval,
-        std::vector<refined_data_set>& data) const
+        std::vector<ratio_data_set>& data) const
     {
+        auto const& smallest_input_data = std::get<0>(data.front());
+
         auto step_total = 
             std::accumulate(
                 data.begin(),
                 data.end(),
                 0.0,
-                [](double first,
-                   refined_data_set const& second)
+                [](time_ratio_t first,
+                   ratio_data_set const& second)
                 {
-                    auto step_second = 
-                    std::get<2>(second) / std::get<1>(second); 
+                    std::cout << std::get<2>(second) << std::endl;
+
+                    const int size_ratio = 1;
+                    const int time_ratio = 2;
+
+                    auto step_second = std::get<time_ratio>(second)
+                    / std::get<size_ratio>(second); 
                     return first + step_second;
                 });
         
-        auto averaged_step = 
-            step_total / static_cast<double>(data.size());
+        auto averaged_step = step_total / static_cast<int>(data.size());
 
-        auto initial_value = std::get<0>(data.front());
-
+        // auto step_duration =
+        //     std::chrono::duration<double, std::nano>(averaged_step);
+        auto initial_value = smallest_input_data.second;
+        auto initial_input_size = smallest_input_data.first;
         
-        std::vector<double> y(plot_interval.second -
-                              plot_interval.first);
+        std::vector<time_duration> simulated_time(
+            plot_interval.second - initial_input_size);
 
-        balance::generate_sequencing<double>(
-            y.begin(),
-            y.end(),
+        std::cout << "init "<< initial_value.count() << "\n";
+
+        balance::generate_sequencing(
+            simulated_time.begin(),
+            simulated_time.end(),
             initial_value,
             [averaged_step](auto it)
             {
                 auto prev_it = std::prev(it);
-                return *prev_it + averaged_step;
+                return *prev_it * averaged_step;
             });
 
-
         int gen = plot_interval.first;
-        std::vector<int> x(plot_interval.second -
-                           plot_interval.first);
-        std::generate(x.begin(), x.end(), [&gen](){ return gen++; });
+        std::vector<int> input_size(plot_interval.second -
+                                    plot_interval.first);
+        std::generate(input_size.begin(),
+                      input_size.end(),
+                      [&gen](){ return gen++; });
         
-        return {x,y};
+        return {input_size, simulated_time};
     }
 
     template<>
-    std::vector<refined_data_set>
+    std::vector<ratio_data_set>
     scale_simulator::
     compute_ratio<2>(std::vector<data_set>& data) const
     {
@@ -153,14 +170,14 @@ namespace balance
             N1 = &data[0];
         }
 
-        auto size_ratio = N2->first / N1->first;
-        auto time_ratio = N2->second.count() / N1->second.count();
+        auto size_ratio = static_cast<double>(N2->first) / N1->first;
+        auto time_ratio = N2->second / N1->second;
 
-        return {{N1->first, size_ratio, time_ratio}};
+        return {{*N1, size_ratio, time_ratio}};
     }
 
     template<size_t N>
-    std::vector<refined_data_set>
+    std::vector<ratio_data_set>
     scale_simulator::
     compute_ratio(std::vector<data_set>& data) const
     {
@@ -173,7 +190,7 @@ namespace balance
         auto refined_size = static_cast<size_t>(
             std::ceil(static_cast<double>(data.size()) / 2));
 
-        std::vector<refined_data_set> result(refined_size);
+        std::vector<ratio_data_set> result(refined_size);
 
         balance::transform_between(
             data.begin(),
@@ -188,7 +205,7 @@ namespace balance
                     static_cast<time_ratio_t>(second.second.count())
                     / first.second.count();
 
-                return {first.first, size_ratio, time_ratio};
+                return {first, size_ratio, time_ratio};
             });
 
         return result;
@@ -214,7 +231,7 @@ namespace balance
     template<typename _Policy>
     void
     scale_simulator::
-    graph_simulated_scale(int begin, int end)
+    simulate_scale(int begin, int end)
     {
         std::vector<data_set> striped_data(_data.size());
 
@@ -226,23 +243,35 @@ namespace balance
                            return element->value(); 
                        });
 
-        std::vector<refined_data_set> processed_data;
+        std::vector<ratio_data_set> ratio_data_sets;
 
         int const ELSE = 3;
 
         // optimization, assertion by size. size 1 should assert.
         if(striped_data.size() == 2)
-            processed_data = compute_ratio<2>(striped_data);
+            ratio_data_sets = compute_ratio<2>(striped_data);
         else
-            processed_data = compute_ratio<ELSE>(striped_data);
+            ratio_data_sets = compute_ratio<ELSE>(striped_data);
 
-        auto plot_range = std::make_pair(begin, end);
+        auto range = std::make_pair(begin, end);
         auto plot_data =
-            compute_simulated_graph<_Policy>(
-                plot_range,
-                processed_data);
+            compute_simulated_range<_Policy>(range,
+                                             ratio_data_sets);
+        
+        _simulated_range = std::move(plot_data);
+    }
 
-        plot(plot_data);
+    double
+    scale_simulator::
+    get_simulated_time(int input_size) 
+    {
+        for(auto i = 0u; i < _simulated_range.first.size(); ++i)
+        {
+            if(_simulated_range.first[i] == input_size)
+                return _simulated_range.second[i].count();
+        }
+
+        return 0;
     }
 }
 

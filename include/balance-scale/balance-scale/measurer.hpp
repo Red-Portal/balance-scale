@@ -25,7 +25,7 @@ namespace balance
 {
     using clock = std::chrono::steady_clock;
     using time_point = std::chrono::time_point<clock>;
-    using time_duration = std::chrono::duration< long,
+    using time_duration = std::chrono::duration< double,
                                                  std::nano >;
     using data_set = std::pair<int, time_duration>;
 
