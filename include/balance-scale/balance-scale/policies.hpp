@@ -20,11 +20,11 @@ namespace balance::policy
 {
     class average
     {
-
+        
     };
 
 
-    class real
+    class adjacent
     {
         
     };
