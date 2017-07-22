@@ -36,39 +36,45 @@ int main()
 
     {
         int const num = 13;
+
         measur3.start(num);
+        int result = fib(num);
+        measur3.end();
 
         std::cout << num << "th fibonacci number is " 
-                  << fib(num) << std::endl;
-
-        measur3.end();
+                  << result << std::endl;
     } 
 
     {
         int const num = 1;
+
         measur1.start(num);
-
-        std::cout << num << "th fibonacci number is "
-                  << fib(num) << std::endl;
-
+        int result = fib(num);
         measur1.end();
-    }
+
+        std::cout << num << "th fibonacci number is " 
+                  << result << std::endl;
+    } 
 
     {
         int const num = 10;
+
         measur2.start(num);
+        int result = fib(num);
+        measur2.end();
 
         std::cout << num << "th fibonacci number is " 
-                  << fib(num) << std::endl;
-
-        measur2.end();
+                  << result << std::endl;
     } 
-
     
     auto start = std::chrono::steady_clock::now();
-    calc.graph_simulated_scale<balance::policy::average>(10, 20); 
+    calc.simulate_scale<balance::policy::average>(10, 20); 
     auto end = std::chrono::steady_clock::now();
 
+    const int size = 15;
+
+    std::cout << "simulated time for " << size << " input size: ";
+    std::cout << calc.get_simulated_time(size) << std::endl;
     auto duration = end - start;
 
     std::cout << "benchmark: "

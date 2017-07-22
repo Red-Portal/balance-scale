@@ -36,35 +36,37 @@ int main()
 
     {
         int const num = 13;
+
         measur3.start(num);
-
-        std::cout << num << "th fibonacci number is " 
-                  << fib(num) << std::endl;
-
+        int result = fib(num);
         measur3.end();
-    } 
-
-    {
-        int const num = 10;
-        measur2.start(num);
 
         std::cout << num << "th fibonacci number is " 
-                  << fib(num) << std::endl;
-
-        measur2.end();
+                  << result << std::endl;
     } 
 
     {
         int const num = 1;
+
         measur1.start(num);
-
-        std::cout << num << "th fibonacci number is "
-                  << fib(num) << std::endl;
-
+        int result = fib(num);
         measur1.end();
-    }
 
-    
+        std::cout << num << "th fibonacci number is " 
+                  << result << std::endl;
+    } 
+
+    {
+        int const num = 10;
+
+        measur2.start(num);
+        int result = fib(num);
+        measur2.end();
+
+        std::cout << num << "th fibonacci number is " 
+                  << result << std::endl;
+    } 
+
     auto start = std::chrono::steady_clock::now();
     auto result = calc.compute_complexity();
     auto end = std::chrono::steady_clock::now();
@@ -74,6 +76,7 @@ int main()
     std::cout << "approximate complexity: " << result << std::endl;
     std::cout << "benchmark: "
               << std::chrono::duration_cast<std::chrono::microseconds>(duration).count()
+              << "ms"
               << std::endl;
 
     return 0;
