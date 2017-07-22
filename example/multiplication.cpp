@@ -13,6 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+/*
+ * disclaimer.
+ * 
+ * Because in this example, std::cout is included in the
+ * measured range, undeterminisim introduced by IO might
+ * make calculations strange.
+ *
+ */
+
+
 #include <iostream>
 
 #include <balance-scale/balance-scale.hpp>
